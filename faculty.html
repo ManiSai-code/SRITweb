@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Faculty Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        /* Inline extra CSS for dashboard cards */
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            color: #000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .bg-wrapper {
+            background: url("images/college-bg.jpg") no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+        }
+
+        .overlay {
+            background: rgba(0,0,0,0.7);
+            min-height: 100vh;
+            padding: 50px 0;
+        }
+
+        .btn-danger {
+            font-weight: 700;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+    </style>
+</head>
+<body>
+<!-- Fixed Home Button -->
+<a href="index.html" class="btn btn-warning fw-bold fixed-bottom mx-auto mb-3 d-block text-center" style="width:150px;">
+     Home
+</a>
+
+<div class="bg-wrapper">
+    <div class="overlay">
+
+        <div class="container text-white">
+
+            <h2 class="mb-4"> Faculty Dashboard</h2>
+            <p>Welcome to the Faculty Portal.</p>
+
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="dashboard-card">
+                        <h5>Students</h5>
+                        <p>View student list</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="dashboard-card">
+                        <h5>Marks</h5>
+                        <p>Upload marks</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="dashboard-card">
+                        <h5>Timetable</h5>
+                        <p>View class schedule</p>
+                    </div>
+                </div>
+                <!-- Assigned Classes Section -->
+<div class="mt-5 text-white">
+    <h4> Assigned Classes</h4>
+    <div id="facultyAssignments">
+        <p>Loading assignments...</p>
+    </div>
+</div>
+
+            </div>
+
+            <!-- Logout Button -->
+            <div class="mt-5 text-center">
+                <button class="btn btn-danger px-4 fw-bold" onclick="logout()">
+                     Logout
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // Role protection
+    // Faculty role protection
+const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+
+if (!loggedInUser || loggedInUser.role !== "faculty") {
+    alert("Unauthorized Access");
+    window.location.href = "login.html";
+}
+
+// Use loggedInUser.username for faculty-specific assignments
+let facultyId = loggedInUser.username; 
+
+// Then filter assignments
+let assignments = JSON.parse(localStorage.getItem("classAssignments") || "[]");
+let myAssignments = assignments.filter(a => a.faculty === facultyId);
+
+
+// Display assignments
+let container = document.getElementById("facultyAssignments");
+container.innerHTML = "";
+
+if(myAssignments.length === 0){
+    container.innerHTML = "<p>No classes assigned yet.</p>";
+} else {
+    myAssignments.forEach(a => {
+        let card = document.createElement("div");
+        card.classList.add("dashboard-card", "mb-2");
+        card.innerHTML = `<strong>${a.className}</strong> → Students: ${a.student}`;
+        container.appendChild(card);
+    });
+}
+
+function logout() {
+    localStorage.removeItem("loggedInUser");
+    window.location.href = "login.html";
+}
+
+</script>
+
+</body>
+</html>

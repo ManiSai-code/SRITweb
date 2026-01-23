@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body { background:#0f172a; color:white; }
+button { font-weight:bold; }
+.section { display:none; }
+</style>
+</head>
+
+<body>
+
+<nav class="navbar navbar-dark bg-dark px-3">
+  <span class="navbar-brand">Admin Dashboard</span>
+  <button class="btn btn-outline-danger" onclick="logout()">Logout</button>
+</nav>
+
+<div class="container mt-4">
+
+  <div class="d-flex flex-wrap justify-content-center gap-3 mt-4">
+  <button class="btn btn-outline-light" onclick="go('manage-students.html')">Manage Students</button>
+  <button class="btn btn-outline-light" onclick="go('manage-faculty.html')">Manage Faculty</button>
+  <button class="btn btn-outline-light" onclick="go('assign-classes.html')">Assign Classes</button>
+  <button class="btn btn-outline-light" onclick="go('post-notice.html')">Post Notices</button>
+  <button class="btn btn-outline-light" onclick="go('update-website.html')">Update Website</button>
+</div>
+
+
+  <!-- MANAGE STUDENTS -->
+  <div id="students" class="section">
+    <h4>Students</h4>
+    <ul id="studentList" class="list-group"></ul>
+  </div>
+
+  <!-- MANAGE FACULTY -->
+  <div id="faculty" class="section">
+    <h4>Faculty</h4>
+    <ul id="facultyList" class="list-group"></ul>
+  </div>
+
+  <!-- ASSIGN CLASSES -->
+  <div id="classes" class="section">
+    <h4>Assign Classes</h4>
+
+    <input id="className" class="form-control mb-2" placeholder="Class Name">
+
+    <select id="facultySelect" class="form-control mb-2"></select>
+    <select id="studentSelect" class="form-control mb-2"></select>
+
+    <button class="btn btn-success" onclick="assignClass()">Assign</button>
+  </div>
+
+  <!-- POST NOTICES -->
+  <div id="notices" class="section">
+    <h4>Post Notice</h4>
+    <textarea id="noticeText" class="form-control mb-2"></textarea>
+    <button class="btn btn-warning" onclick="postNotice()">Post</button>
+    <ul id="noticeList" class="mt-3"></ul>
+  </div>
+
+  <!-- UPDATE WEBSITE -->
+  <div id="website" class="section">
+    <h4>Website Announcement</h4>
+    <textarea id="siteText" class="form-control mb-2"></textarea>
+    <button class="btn btn-info" onclick="updateSite()">Update</button>
+  </div>
+
+</div>
+<!-- Fixed Home Button -->
+<a href="index.html" class="btn btn-warning fw-bold fixed-bottom mx-auto mb-3 d-block text-center" style="width:150px;">
+     Home
+</a>
+
+<script>
+/* ================= AUTH CHECK ================= */
+const admin = JSON.parse(localStorage.getItem("loggedInUser"));
+if (!admin || admin.role !== "admin") location.href="login.html";
+
+/* ================= DATA ================= */
+const users = JSON.parse(localStorage.getItem("users")) || [];
+let notices = JSON.parse(localStorage.getItem("notices")) || [];
+
+/* ================= SHOW SECTIONS ================= */
+function show(id){
+  document.querySelectorAll(".section").forEach(s=>s.style.display="none");
+  document.getElementById(id).style.display="block";
+  if(id==="students") loadStudents();
+  if(id==="faculty") loadFaculty();
+  if(id==="classes") loadDropdowns();
+  if(id==="notices") loadNotices();
+}
+
+/* ================= STUDENTS ================= */
+function loadStudents(){
+  const ul=document.getElementById("studentList");
+  ul.innerHTML="";
+  users.filter(u=>u.role==="student").forEach(s=>{
+    ul.innerHTML+=`<li class="list-group-item">${s.username}</li>`;
+  });
+}
+
+/* ================= FACULTY ================= */
+function loadFaculty(){
+  const ul=document.getElementById("facultyList");
+  ul.innerHTML="";
+  users.filter(u=>u.role==="faculty").forEach(f=>{
+    ul.innerHTML+=`<li class="list-group-item">${f.username}</li>`;
+  });
+}
+
+/* ================= ASSIGN CLASSES ================= */
+function loadDropdowns(){
+  facultySelect.innerHTML="";
+  studentSelect.innerHTML="";
+  users.filter(u=>u.role==="faculty").forEach(f=>{
+    facultySelect.innerHTML+=`<option>${f.username}</option>`;
+  });
+  users.filter(u=>u.role==="student").forEach(s=>{
+    studentSelect.innerHTML+=`<option>${s.username}</option>`;
+  });
+}
+
+function assignClass(){
+  const cname=className.value;
+  const fac=facultySelect.value;
+  const stu=studentSelect.value;
+
+  users.forEach(u=>{
+    if((u.username===fac||u.username===stu)){
+      u.classes = u.classes || [];
+      u.classes.push(cname);
+    }
+  });
+
+  localStorage.setItem("users",JSON.stringify(users));
+  alert("Class Assigned!");
+}
+
+/* ================= NOTICES ================= */
+function postNotice(){
+  notices.push(noticeText.value);
+  localStorage.setItem("notices",JSON.stringify(notices));
+  noticeText.value="";
+  loadNotices();
+}
+
+function loadNotices(){
+  noticeList.innerHTML="";
+  notices.forEach(n=>noticeList.innerHTML+=`<li>${n}</li>`);
+}
+
+/* ================= WEBSITE UPDATE ================= */
+function updateSite(){
+  localStorage.setItem("siteAnnouncement",siteText.value);
+  alert("Website Updated");
+}
+
+/* ================= LOGOUT ================= */
+function logout(){
+  localStorage.removeItem("loggedInUser");
+  location.href="login.html";
+}
+function go(page){
+  window.location.href = page;
+}
+</script>
+
+</body>
+</html>

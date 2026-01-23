@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRIT Login</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS (optional) -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<!-- Fixed Home Button -->
+<a href="index.html" class="btn btn-warning fw-bold fixed-bottom mx-auto mb-3 d-block text-center" style="width:150px;">
+    Home
+</a>
+
+<div class="bg-wrapper">
+    <div class="overlay d-flex justify-content-center align-items-center min-vh-100">
+
+        <div class="login-card p-4 text-white bg-dark rounded shadow" style="width:350px">
+
+            <h3 class="text-center mb-4">SRIT Portal Login</h3>
+
+            <!-- Login Type Buttons -->
+            <div class="btn-group w-100 mb-3">
+                <button class="btn btn-outline-light active" onclick="showLogin('student')">Student</button>
+                <button class="btn btn-outline-light" onclick="showLogin('faculty')">Faculty</button>
+                <button class="btn btn-outline-light" onclick="showLogin('admin')">Admin</button>
+            </div>
+
+            <!-- Student Login -->
+            <form id="student" class="login-form" onsubmit="login(event,'student')">
+                <input type="text" id="studentUsername" class="form-control mb-3" placeholder="Student ID" required>
+                <input type="password" id="studentPassword" class="form-control mb-3" placeholder="Password" required>
+                <button class="btn btn-primary w-100 fw-bold">Login</button>
+            </form>
+
+            <!-- Faculty Login -->
+            <form id="faculty" class="login-form d-none" onsubmit="login(event,'faculty')">
+                <input type="text" id="facultyUsername" class="form-control mb-3" placeholder="Faculty ID" required>
+                <input type="password" id="facultyPassword" class="form-control mb-3" placeholder="Password" required>
+                <button class="btn btn-success w-100 fw-bold">Login</button>
+            </form>
+
+            <!-- Admin Login -->
+            <form id="admin" class="login-form d-none" onsubmit="login(event,'admin')">
+                <input type="text" id="adminUsername" class="form-control mb-3" placeholder="Admin Username" required>
+                <input type="password" id="adminPassword" class="form-control mb-3" placeholder="Password" required>
+                <button class="btn btn-danger w-100 fw-bold">Login</button>
+            </form>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+/* ===============================
+   CREATE DEFAULT USERS (ONCE)
+================================ */
+if (!localStorage.getItem("users")) {
+    const users = [
+        { id: "admin1", role: "admin", username: "admin", password: "admin123", classes: [] },
+
+        { id: "faculty1", role: "faculty", username: "faculty1", password: "faculty123", classes: [] },
+
+        { id: "student1", role: "student", username: "student1", password: "student123", classes: [] },
+        { id: "student2", role: "student", username: "student2", password: "student123", classes: [] }
+    ];
+    localStorage.setItem("users", JSON.stringify(users));
+}
+
+/* ===============================
+   SWITCH LOGIN FORM
+================================ */
+function showLogin(role) {
+    document.querySelectorAll(".login-form").forEach(form => {
+        form.classList.add("d-none");
+    });
+    document.getElementById(role).classList.remove("d-none");
+
+    document.querySelectorAll(".btn-group .btn").forEach(btn => {
+        btn.classList.remove("active");
+    });
+    event.target.classList.add("active");
+}
+
+/* ===============================
+   LOGIN FUNCTION
+================================ */
+function login(event, role) {
+    event.preventDefault();
+
+    const users = JSON.parse(localStorage.getItem("users")) || [];
+    let username, password;
+
+    if (role === "student") {
+        username = studentUsername.value;
+        password = studentPassword.value;
+    }
+    if (role === "faculty") {
+        username = facultyUsername.value;
+        password = facultyPassword.value;
+    }
+    if (role === "admin") {
+        username = adminUsername.value;
+        password = adminPassword.value;
+    }
+
+    const user = users.find(
+        u => u.username === username && u.password === password && u.role === role
+    );
+
+    if (!user) {
+        alert("❌ Invalid Credentials");
+        return;
+    }
+
+    localStorage.setItem("loggedInUser", JSON.stringify(user));
+
+    if (role === "admin") window.location.href = "admin.html";
+    if (role === "faculty") window.location.href = "faculty.html";
+    if (role === "student") window.location.href = "student.html";
+}
+</script>
+
+</body>
+</html>

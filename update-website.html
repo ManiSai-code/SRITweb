@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Update Website</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-dark text-white p-4">
+<h3>Update Website Announcement</h3>
+
+<textarea id="text" class="form-control mb-3"
+placeholder="Homepage announcement"></textarea>
+
+<button class="btn btn-info" onclick="save()">Update</button>
+<button class="btn btn-secondary" onclick="back()">Back</button>
+
+<script>
+text.value = localStorage.getItem("siteAnnouncement") || "";
+
+function save(){
+  localStorage.setItem("siteAnnouncement",text.value);
+  alert("Website updated!");
+}
+
+function back(){ location.href="admin.html"; }
+</script>
+</body>
+</html>
