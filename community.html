@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Student Community</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+
+<style>
+.post-card {
+    background: rgba(255,255,255,0.95);
+    border-radius: 10px;
+    padding: 15px;
+    color: #000;
+}
+.tag {
+    font-size: 0.8rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+.tag-idea { background:#0d6efd; color:white; }
+.tag-help { background:#dc3545; color:white; }
+.tag-discussion { background:#198754; color:white; }
+</style>
+</head>
+
+<body>
+
+<div class="bg-wrapper">
+<div class="overlay">
+<div class="container text-white">
+
+<h2 class="mb-3">🎓 Student Community</h2>
+<p class="mb-4">Share ideas, ask for help, or start a discussion</p>
+
+<!-- POST FORM (STUDENTS ONLY) -->
+<div class="card mb-4" id="postSection">
+<div class="card-body">
+
+<textarea id="postText" class="form-control mb-2" rows="3"
+placeholder="What's on your mind?"></textarea>
+
+<select id="postTag" class="form-control mb-2">
+<option value="idea">💡 Idea</option>
+<option value="help">❓ Help</option>
+<option value="discussion">💬 Discussion</option>
+</select>
+
+<button class="btn btn-primary fw-bold" onclick="addPost()">Post</button>
+
+</div>
+</div>
+
+<!-- POSTS -->
+<div id="posts"></div>
+
+<!-- BACK BUTTON -->
+<div class="text-center mt-4">
+<button class="btn btn-light fw-bold" onclick="goBack()">← Back to Dashboard</button>
+</div>
+
+</div>
+</div>
+</div>
+
+<script>
+/* ================= AUTH ================= */
+const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+
+if (!loggedInUser) {
+    alert("Unauthorized");
+    location.href = "login.html";
+}
+
+if (loggedInUser.role !== "student") {
+    document.getElementById("postSection").style.display = "none";
+}
+
+/* ================= DATA ================= */
+let posts = JSON.parse(localStorage.getItem("communityPosts")) || [];
+
+function savePosts() {
+    localStorage.setItem("communityPosts", JSON.stringify(posts));
+}
+
+/* ================= RENDER POSTS ================= */
+function renderPosts() {
+    const container = document.getElementById("posts");
+    container.innerHTML = "";
+
+    posts.slice().reverse().forEach((p, index) => {
+        const realIndex = posts.length - 1 - index;
+        const liked = p.likes.includes(loggedInUser.username);
+
+        container.innerHTML += `
+        <div class="post-card mb-3">
+
+            <div class="d-flex justify-content-between align-items-center">
+                <strong>${p.author} (${p.authorRole})</strong>
+                <span class="tag tag-${p.tag}">${p.tag.toUpperCase()}</span>
+            </div>
+
+            <p class="mt-2">${p.text}</p>
+
+            <div class="d-flex gap-3 mb-2">
+
+                ${
+                    loggedInUser.role === "student"
+                    ? `<button class="btn btn-sm ${liked ? "btn-danger" : "btn-outline-danger"}"
+                        onclick="toggleLike(${realIndex})">
+                        ❤️ ${p.likes.length}
+                       </button>`
+                    : `<span>❤️ ${p.likes.length}</span>`
+                }
+
+                ${
+                    loggedInUser.role === "admin"
+                    ? `<button class="btn btn-sm btn-outline-dark"
+                        onclick="deletePost(${realIndex})">🗑️ Delete</button>`
+                    : ""
+                }
+
+            </div>
+
+            <!-- COMMENTS -->
+            <div>
+                <strong>Comments:</strong>
+
+                ${
+                    p.comments.length === 0
+                    ? `<p class="text-muted">No comments yet</p>`
+                    : p.comments.map(c => `
+                        <div class="border rounded p-2 mt-1">
+                            <strong>${c.user}</strong>: ${c.text}
+                            <br>
+                            <small class="text-muted">${c.time}</small>
+                        </div>
+                    `).join("")
+                }
+
+                ${
+                    (loggedInUser.role === "student" || loggedInUser.role === "faculty")
+                    ? `
+                    <div class="mt-2 d-flex gap-2">
+                        <input class="form-control form-control-sm"
+                            id="comment-${realIndex}"
+                            placeholder="Write a comment...">
+                        <button class="btn btn-sm btn-primary"
+                            onclick="addComment(${realIndex})">Post</button>
+                    </div>
+                    `
+                    : ""
+                }
+            </div>
+
+            <small class="text-muted d-block mt-2">${p.time}</small>
+
+        </div>`;
+    });
+}
+
+renderPosts();
+
+/* ================= ADD POST ================= */
+function addPost() {
+    if (!postText.value.trim()) {
+        alert("Post cannot be empty");
+        return;
+    }
+
+    posts.push({
+        author: loggedInUser.username,
+        authorRole: loggedInUser.role,
+        text: postText.value,
+        tag: postTag.value,
+        time: new Date().toLocaleString(),
+        likes: [],
+        comments: []
+    });
+
+    savePosts();
+    postText.value = "";
+    renderPosts();
+}
+
+/* ================= LIKE ================= */
+function toggleLike(index) {
+    const user = loggedInUser.username;
+
+    if (posts[index].likes.includes(user)) {
+        posts[index].likes = posts[index].likes.filter(u => u !== user);
+    } else {
+        posts[index].likes.push(user);
+    }
+
+    savePosts();
+    renderPosts();
+}
+
+/* ================= COMMENT ================= */
+function addComment(index) {
+    const input = document.getElementById(`comment-${index}`);
+    if (!input || !input.value.trim()) return;
+
+    posts[index].comments.push({
+        user: loggedInUser.username,
+        text: input.value,
+        time: new Date().toLocaleString()
+    });
+
+    savePosts();
+    renderPosts();
+}
+
+/* ================= ADMIN DELETE ================= */
+function deletePost(index) {
+    if (!confirm("Delete this post?")) return;
+
+    posts.splice(index, 1);
+    savePosts();
+    renderPosts();
+}
+
+/* ================= NAV ================= */
+function goBack() {
+    if (loggedInUser.role === "student") location.href = "student.html";
+    else if (loggedInUser.role === "faculty") location.href = "faculty.html";
+    else location.href = "admin.html";
+}
+</script>
+
+</body>
+</html>
