@@ -115,12 +115,11 @@ function renderPosts() {
                     : `<span>❤️ ${p.likes.length}</span>`
                 }
 
-                ${
-                    loggedInUser.role === "admin"
-                    ? `<button class="btn btn-sm btn-outline-dark"
-                        onclick="deletePost(${realIndex})">🗑️ Delete</button>`
-                    : ""
-                }
+                ${(loggedInUser.role === "admin" || loggedInUser.username === p.author) ? 
+`<button class="btn btn-sm btn-outline-danger"
+    onclick="deletePost(${index})">🗑️ Delete</button>` 
+: ""}
+
 
             </div>
 
